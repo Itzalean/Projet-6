@@ -1,0 +1,95 @@
+<template>
+<b-modal id="loginModal" ref="loginModal" centered :hide-footer=true>
+    <div slot="modal-header">
+        <div class="modalTitle">Connexion</div>
+        <span class="modalMsg"> {{errMsg}} </span>
+    </div>
+    <b-form no-validate>
+        <b-form-group id="nameGroup" label="Nom / pseudo :" label-for="name">
+            <b-input-group class="mb-2">
+                <b-input-group-prepend is-text>
+                    <b-icon icon="person-fill" variant="primary"></b-icon>
+                </b-input-group-prepend>
+                <b-form-input id="name" :state="userCheck" v-model="form.name" required autofocus placeholder="Saisissez votre nom"></b-form-input>
+                <b-form-invalid-feedback :state="userCheck"> {{ userMsg }} </b-form-invalid-feedback>
+            </b-input-group>
+        </b-form-group>
+
+        <b-form-group id="passwordGroup" label="Mot de passe :" label-for="password">
+            <b-input-group class="mb-2">
+                <b-input-group-prepend is-text>
+                    <b-icon icon="key" variant="danger"></b-icon>
+                </b-input-group-prepend>
+                <b-form-input id="password" :state="pwdCheck" v-model="form.password" type="password" required></b-form-input>
+                <b-form-invalid-feedback :state="pwdCheck"> {{ pwdMsg }} </b-form-invalid-feedback>
+            </b-input-group>
+        </b-form-group>
+
+        <div>
+            <b-button type="button" variant="primary" :disabled="!(userCheck && pwdCheck)" @click="loginUser()">Connexion</b-button>
+            <b-button type="button" class="ml-4" variant="secondary"  @click="$bvModal.hide('loginModal')">Annuler</b-button>
+            <b-button class="mx-3" variant="warning" @click='goToSignup()'>S'inscrire</b-button>
+        </div>
+    </b-form>
+</b-modal>
+</template>
+
+<script>
+import { mapState, mapGetters, mapMutations } from 'vuex';
+
+export default {
+    name: "loginModal",
+    data() {
+        return {
+            form: {
+                name: "",
+                password: "",
+            },
+        errMsg: null
+        }
+    },
+    computed: {
+        ...mapGetters(['auth/isAuthenticated']),
+        userCheck() {
+            this.userMsg = "Nom d'utilisateur obligatoire"
+            return this.form.name.length !== 0
+        },
+        pwdCheck() {
+            this.pwdMsg = "Mot de passe obligatoire"
+            return this.form.password.length !== 0
+        },
+//        isValidated: () => {console.log(form.password.state)}
+    },
+    methods: {
+        ...mapMutations([
+            'auth/ShowModal'
+        ]),
+        loginUser: function() {
+            const {name, password } = this.form
+
+            this.$store.dispatch("auth/loginUser", {name, password })
+                .then((data) => console.log("data : ", data))
+                .catch((err) => {this.errMsg = err.message})
+        },
+        goToSignup: function() {
+            this.$bvModal.hide('loginModal');
+            this.$bvModal.show('signupModal');
+        }
+    }
+}
+
+</script>
+
+<style scoped lang="scss">
+button:last-child {
+    float: right;   
+}
+
+.modalTitle {
+    font-size: 1.5rem;
+}
+.modalMsg {
+    color: red;
+    font-weight: bold;
+}
+</style>
