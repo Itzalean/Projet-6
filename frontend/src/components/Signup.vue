@@ -1,10 +1,12 @@
 <template>
-<b-modal id="signupModal" ref="signupModal" centered :hide-footer=true>
+<b-modal id="signupModal" ref="signupModal" centered :hide-footer=true no-close-on-backdrop>
     <div slot="modal-header">
         <div class="modalTitle">Inscription</div>
         <span class="modalMsg"> {{errMsg}} </span>
     </div>
     <b-form no-validate>
+
+        <!-- Champ de saisie du nom -->
         <b-form-group id="nameGroup" label="Nom / pseudo :" label-for="name">
              <b-input-group class="mb-2">
                 <b-input-group-prepend is-text>
@@ -15,6 +17,7 @@
              </b-input-group>
        </b-form-group>
 
+        <!-- Champ de saisie de l'email -->
         <b-form-group id="emailGroup" label="Adresse email :" label-for="email">
              <b-input-group class="mb-2">
                 <b-input-group-prepend is-text>
@@ -25,6 +28,7 @@
              </b-input-group>
         </b-form-group>
 
+        <!-- Champ de saisie du mot de passe -->
         <b-form-group id="passwordGroup" label="Mot de passe :" label-for="password">
              <b-input-group class="mb-2">
                 <b-input-group-prepend is-text>
@@ -35,6 +39,7 @@
              </b-input-group>
         </b-form-group>
 
+        <!-- Confirmation du mot de passe, doit être identique au mot de passe -->
         <b-form-group id="confirmGroup" label="Confirmez le mot de passe :" label-for="confirmPwd">
              <b-input-group class="mb-2">
                 <b-input-group-prepend is-text>
@@ -45,8 +50,10 @@
              </b-input-group>
         </b-form-group>
 
-        <b-button type="button" variant="primary" :disabled="!(userCheck && emailCheck && pwdCheck)" @click="signupUser()">Valider</b-button>
-        <b-button type="button" class="ml-4" variant="secondary" @click="$bvModal.hide('signupModal')">Annuler</b-button>
+        <b-button-group>
+            <b-button type="button" variant="primary" :disabled="!(userCheck && emailCheck && pwdCheck)" @click="signupUser()">Valider</b-button>
+            <b-button type="button" class="ml-4" variant="secondary" to="/">Annuler</b-button>
+        </b-button-group>
     </b-form>
 </b-modal>
 </template>
@@ -57,7 +64,6 @@ export default {
     computed: {
         userCheck() {
             this.userMsg = "Nom d'utilisateur obligatoire."
-            console.log(this.form.name.length !== 0)
             return this.form.name.length !== 0
         },
         emailCheck() {
@@ -97,20 +103,40 @@ export default {
     methods: {
         signupUser: function() {
             this.$store.dispatch("auth/signupUser", this.form)
-            // this.$refs["signupModal"].hide()
-                .then((data) => console.log("data : ", data))
+                .then((data) => {})
                 .catch((err) => {this.errMsg = err.message})
 
         },
         validateEmail: function(email) {
             const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
             return re.test(email);
+        },
+        showModal() {
+            this.$refs['signupModal'].show()
+        },
+        hideModal() {
+            this.$refs['signupModal'].hide()
         }
+    },
+    created() {
+        let unsubscribeMe = this.$store.subscribe((mutation, state) => {
+            if (mutation.type === 'auth/AUTH_SUCCESS') {
+                unsubscribeMe()
+                this.$router.push({ path: '/postList'})
+                // .then()
+            }
+        })
+    },
+    mounted() {
+        this.showModal();
     }
 }
 </script>
 
 <style scoped lang="scss">
+.btn-group {
+    width: 100%
+}
 .modalTitle {
     font-size: 1.5rem;
 }

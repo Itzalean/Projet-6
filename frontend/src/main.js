@@ -11,6 +11,7 @@ Vue.config.productionTip = false
 
 Vue.use(BootstrapVue)
 Vue.use(IconsPlugin)
+window.Vue = Vue;
 
 new Vue({
     router,

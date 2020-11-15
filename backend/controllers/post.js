@@ -1,30 +1,32 @@
-//const { users, sequelize } = require("../models");
 const Post = require("../models/Post");
-//const Post = db.posts;
-// const User = db.users;
-// const Op = db.Sequelize.Op;
+
+const fs = require ('fs');
 
 exports.createPost = (req, res) => {
+    const postObject = req.body.post ? JSON.parse(req.body.post) : req.body;
+
 	const post = {
-        UserId: req.body.userId,
-        Title: req.body.Title,
-        Content: req.body.Content,
+        UserId: postObject.userId,
+        Title: postObject.Title,
+        Content: postObject.Content,
         Karma: 0,
-        Type: req.body.Type
+        Type: postObject.Type
         };
+        post.Type === 1 ? post.Content = `${req.protocol}://${req.get("host")}/images/${req.file.filename} ` : post.Content = post.Content
         Post.createPost(post, (err, data) => {
-            if (err) {res.status(500).send({ message: err.message || "Erreur lors de la création" })}
-            else { res.send(data); }
+            if (err) {res.status(500).send({ message: err.message || "Erreur lors de la création du post" })}
+            res.send(data);
         })
-// Post.create(post)
-    //     .then(data => { res.send(data);})
-    //     .catch(err => {res.status(500).send({message: err.message || "Erreur lors de la création"})})
 }
 
 exports.updatePost = (req, res) => {
-    Post.update(req.body, {where: {id: req.params.id}})
-        .then(() => res.status(200).json({message: "Post mis à jour"}))
-        .catch(error => res.status(400).json({ error }))
+    const postObject = req.body.post ? JSON.parse(req.body.post) : req.body;
+
+    postObject.Type === 1 ? postObject.Content = `${req.protocol}://${req.get("host")}/images/${req.file.filename} ` : postObject.Content = postObject.Content
+    Post.update(postObject, (err, data) => {
+        if (err) {res.status(500).send({ message: err.message || "Erreur lors de la mise à jour"})}
+        else { res.send(data); }
+    })
 };
 
 exports.deletePost = (req, res) => {
@@ -32,8 +34,6 @@ exports.deletePost = (req, res) => {
         if (err) {res.status(500).send({ message: err.message || "Erreur lors de la suppression"})}
         else { res.send(data); }
     })
-        // .then(() => res.status(200).json({ message: "Post supprimé"}))
-        // .catch(error => res.status(400).json({ srror }))
 };
 
 exports.getPost = (req, res) => {
@@ -41,7 +41,7 @@ exports.getPost = (req, res) => {
         // .then(data => res.send(data))
         // .catch(err => res.status(500).send({message: "Post introuvable"}))
         if (err) res.status(500).send({message:
-            err.message || "Une erreur est survenue lors de la lecture do post."
+            err.message || "Une erreur est survenue lors de la lecture du post."
         })
         else res.send(data);
         // .then(data => res.send(data))
@@ -51,6 +51,7 @@ exports.getPost = (req, res) => {
 };
 
 exports.getAllPosts = (req, res) => {
+    const post = req.body.id;
     Post.findAll((err, data) => {
         if (err)
           res.status(500).send({
@@ -59,10 +60,6 @@ exports.getAllPosts = (req, res) => {
           });
         else res.send(data);
       });
-    // sequelize.query("SELECT Posts.*, Name FROM Posts JOIN Users ON Posts.userId = Users.Id WHERE Posts.Deleted = 0 AND Users.Deleted = 0 ORDER BY createdAt DESC",
-    //     { type: sequelize.QueryTypes.SELECT })
-    //     .then(data => res.send(data))
-    //     .catch(err => res.status(500).send({message: err.message || "Une erreur est survenue lors de la lecture des posts."}))
 }
 
 exports.likePost = (req, res, next) => {

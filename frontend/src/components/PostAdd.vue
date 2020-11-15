@@ -1,83 +1,145 @@
 // ./components/PostAdd.vue
 <template>
-<section class="container col-8 my-5 py-3">
-    <b-form v-model="tabIndex" @submit.prevent="createPost">
-        <b-tabs content-class="mt-3" pills fill card>
+<b-modal id="postAddModal" ref="postAddModal" :title="msgTitle" centered :hide-footer=true size=xl>
 
-            <b-form-input class="my-2" id="title" v-model="post.title" required placeholder="Titre du post"></b-form-input>
+    <section class="container col-8 my-5 py-3">
+        <b-form @submit.prevent="createPost">
+            <b-tabs v-model="tabIndex" content-class="mt-3" pills fill card>
 
-            <b-tab title="Post" active lazy>
-                <b-form-textarea id="content" v-model="post.content" rows="6" required placeholder="Saisissez votre texte"></b-form-textarea>
-            </b-tab>
+                <!-- Titre commun à tous les onglets -->
+                <b-form-input class="my-2" id="title" v-model="wTitle" required autofocus placeholder="Titre du post"></b-form-input>
 
-            <b-tab title="Image" lazy>
-                <b-form-file id="image" accept="image/*" v-model="post.image" size="lg" required drop-placeholder="Glissez/déposez une image ou choisissez une image" browse-text="Parcourir..." @change="imageChange"></b-form-file>
-                <b-row class="justify-content-md-center">
-                    <b-img v-if="imageSrc" :src="imageSrc" class="col-5 my-4"></b-img>
-                </b-row>
-            </b-tab>
+                <!-- Onglet des posts -->
+                <b-tab title="Post" active lazy 
+                        :disabled="!this.isCreate && this.enabledTab != 'POST'">
+                    <b-form-textarea id="content" v-model="wContent" rows="6" required placeholder="Saisissez votre texte" />
+                </b-tab>
 
-            <b-tab title="Link" lazy>
-                <b-form-input class="my-2" id="link" v-model="post.link" type="url" required placeholder="Url"></b-form-input>
-            </b-tab>
-        </b-tabs>
+                <!-- Onglet des images -->
+                <b-tab title="Image" lazy 
+                        :disabled="!this.isCreate && this.enabledTab !=='IMAGE'">
+                    <b-form-file id="image" accept="image/*" v-model="wPicture" size="lg" required drop-placeholder="Glissez/déposez une image ou choisissez une image" browse-text="Parcourir..." @change="imageChange" />
+                    <b-row class="justify-content-md-center">
+                        <b-img v-if="this.imageSrc" :src="this.imageSrc" class="col-5 my-4" />
+                    </b-row>
+                </b-tab>
 
-        <div class="my-2">
-            <b-button type="submit" variant="primary" >Poster</b-button>
-            <b-button type="reset" variant="danger" @click="reset">Reset</b-button>
-        </div>
-    </b-form>
-</section>
+                <!-- Onglet des liens -->
+                <b-tab title="Link" lazy :disabled="!this.isCreate && this.enabledTab != 'LINK'">
+                    <b-form-input class="my-2" id="link" v-model="wLink" type="url" required placeholder="Url" />
+                </b-tab>
+            </b-tabs>
+
+            <div class="my-2">
+                <b-button type="submit" variant="primary" class="mx-4">Poster</b-button>
+                <b-button type="reset" variant="danger" @click="reset">Reset</b-button>
+            </div>
+        </b-form>
+    </section>
+</b-modal>
 </template>
 
 <script>
-import fetchService from "../services/fetch";
-import { mapState } from 'vuex'
-
 export default {
     name: 'PostAdd',
     data() {
         return {
-            post: {},
+            form: {},
             data: {},
-            imageSrc: null,
-            tabIndex: 0
+            tabIndex: 0,
+            file: ""
         }
     },
+    props: {
+        parmPostId: {}
+    },
     computed: {
-        ...mapState
+        isCreate() {return this.parmPostId.id === void 0},
+        msgTitle() {
+            if (this.parmPostId.id) {
+                return "Modification d'un post"
+            } else {
+                return "Création d'un nouveau post"
+            }
+        },
+        enabledTab() {
+            // Si on est en modification, enabledTab = POST pour un post, IMAGE pour une image, sinon, LINK (pour un lien). Seul l'onglet correspondant est actif
+            return this.parmPostId.id === void 0 ? null :
+                this.parmPostId.Type === 0 ? "POST" :
+                this.parmPostId.Type === 1 ? "IMAGE" :
+                "LINK"
+        },
+        wTitle: {
+            get: function() {return this.parmPostId.Title || ""},
+            set: function(value) {this.form.title = value}
+        },
+        wContent: {
+            get: function() {return this.parmPostId.Type === 0 ? this.parmPostId.Content : ""},
+            set: function(value) {this.form.content = value}
+        },
+        wLink: {
+            get: function() {return this.parmPostId.Type === 2 ? this.parmPostId.Content : ""},
+            set: function(value) {this.form.link = value}
+        },
+        wPicture: {
+            get: function() {},
+            set: function(value) {this.form.picture = value}
+        },
+        imageSrc: {
+            get: function() {return this.parmPostId.Type === 1 ? this.parmPostId.Content : ""
+            },
+            set: function(value) {console.log("Value : ", this.wPicture); this.imageChange(this.form.picture.name)}
+        }
+
     },
     methods: {
         createPost() {
-            console.log('userId : ', this.$store.state.auth.id)
             const params = {
-                Title: this.post.title,
-                userId: this.$store.state.auth.id || 1,
-                // Si id = "link" alors link/2 sinon si id = "image" alors image/1 sinon content/0
-                Type: this.tabIndex.srcElement.id === "link" ? 2 : this.tabIndex.srcElement.id === "image" ? 1 : 0,
-                Content: this.tabIndex.srcElement.id === "link" ? this.post.link : this.tabIndex.srcElement.id === "image" ? this.post.image : this.post.content
+                userId: this.$store.state.auth.id,
+                Title: this.form.title,
+                Type: this.tabIndex,
+                Content: this.tabIndex === 2 ? this.form.link : this.tabIndex === 1 ? this.form.picture.name : this.form.content
             }
-            this.$store.dispatch("posts/createPost", params)
-                .then(value => {console.log("value : ", this.router)
-                    this.$router.push({ path: '/post/' + value.id })
-                })
 
-            // const request = new Promise((resolve, reject) => {
-            //     const data = fetchService("posts", params, "POST");
-            //         resolve(data);
-            // });
-            // request.then(value => {
-            //     this.$router.push({ path: '/post/' + value.id });
-            // })
+            // On envoie l'id du post à part en cas de modification
+            this.isCreate ? null : params.postId = this.parmPostId.id;
+
+            if (params.Type === 1 ) {
+                // Cas des images: on crée un FormData pour pouvoir envoyer les paramètres et les données brutes en même temps. Multer fera le tri côté serveur
+                const formData = new FormData();
+                formData.append('post', JSON.stringify(params));
+                formData.append('image', this.file );
+
+                this.isCreate ? 
+                    this.$store.dispatch("posts/createPost", formData)
+                        .then(value => {this.$router.push({ path: '/post/' + value.id })})
+                    :
+                    this.$store.dispatch("posts/updatePost", [this.parmPostId.id, formData])
+                        .then(value => {this.$router.push({ path: '/post/' + value.id })
+                        })
+            } else {
+                this.isCreate ?
+                    this.$store.dispatch("posts/createPost", params)
+                        .then(value => {this.$router.push({ path: '/post/' + value.id })})
+                    :
+                    this.$store.dispatch("posts/updatePost", [this.parmPostId.id, params])
+                        .then(value => {this.$router.push({ path: '/post/' + value.id })})
+            }
+            this.$bvModal.hide('postAddModal')
         },
         imageChange(url) {
-            const file = url.target.files[0];
-            this.imageSrc = URL.createObjectURL(file);
-            console.log(this.imageSrc);
+            this.file = url.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = (url) => {
+                this.imageSrc = url.target.result;
+            }
+            this.imageSrc = reader.readAsDataURL(this.file);
+            console.log("imageSrc : ", reader);
         },
         reset() {
             this.imageSrc = null;
-        }
+        },
     }
 }
 </script>

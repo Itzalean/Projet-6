@@ -1,18 +1,7 @@
-// module.exports = (sequelize, Sequelize) => {
-//     const Posts = sequelize.define("Posts", {
-//         Title: {type: Sequelize.STRING(255)},
-//         Content: {type: Sequelize.TEXT},
-//         Karma: {type: Sequelize.INTEGER(11)},
-//         Type: {type: Sequelize.INTEGER(1)},
-//         Deleted: {type: Sequelize.BOOLEAN, defaultValue: false}
-//     });
-
-//     return Posts;
-// };
-
+const { deletePost } = require('../controllers/post.js');
 const sql = require('./index.js');
 
-const Post = function(posts) {
+const Post = function(post) {
     this.id = post.Id;
     this.Title = post.Title;
     this.Content = post.Content;
@@ -29,13 +18,29 @@ Post.createPost = (newPost, result) => {
             result(err, null);
             return;
         }
-//        console.log("created post : ", {id: res.insertId, ...newPost});
         result(null, {id: res.insertId, ...newPost});
     });
 }
 
+Post.update = (updatedPost, result) => {
+    const id = updatedPost.postId;
+    delete updatedPost.postId;
+    sql.query("UPDATE Posts SET ?, updatedAt = now() \
+        WHERE id = ?", [updatedPost, id], (err, res) => {
+        if (err) { console.log('error : ', err);
+            result(err, null);
+            return;
+        }
+        result(null, {id: id, ...updatedPost});
+    })
+}
+
 Post.findAll = result => {
-    sql.query("SELECT Posts.*, Name FROM Posts JOIN Users ON Posts.userId = Users.Id WHERE Posts.Deleted = 0 AND Users.Deleted = 0 ORDER BY createdAt DESC",
+    sql.query("SELECT Posts.*, Name, COALESCE(Vote, 0) AS vote FROM Posts \
+        JOIN Users ON Posts.userId = Users.Id \
+        LEFT JOIN Votes ON Votes.userId = Posts.userId AND Votes.postId = Posts.id \
+        WHERE Posts.postId IS NULL \
+        ORDER BY createdAt DESC",
         (err,res) => {
             if (err) {
                 console.log("error: ", err);
@@ -49,13 +54,17 @@ Post.findAll = result => {
 }
 
 Post.findPost = (postId, result) => {
-    sql.query("SELECT Posts.*, Name FROM Posts JOIN Users ON Posts.userId = Users.Id WHERE Posts.Id = ?", postId, (err, res) => {
+    sql.query("SELECT Posts.*, Name, COALESCE(Vote, 0) AS vote FROM Posts \
+    JOIN Users ON Posts.userId = Users.Id \
+    LEFT JOIN Votes ON Votes.userId = Posts.userId AND Votes.postId = Posts.id \
+    WHERE Posts.Id = ? OR Posts.postId = ? \
+    ORDER BY postId, updatedAt DESC", [postId, postId], (err, res) => {
         if (err) { console.log("error: ", err);
             result(err, null);
             return;
         }
         if (res.length) {
-            result(null, res[0]);
+            result(null, res);
             return;
         }
         console.log("post: ", res);
@@ -64,13 +73,30 @@ Post.findPost = (postId, result) => {
 }
 
 Post.delete = (postId, result) => {
-    sql.query('DELETE FROM Posts WHERE id = ? OR postId = ?', [postId, postId], (err, res) => {
+    sql.query('DELETE FROM Posts WHERE id = ?', postId, (err, res) => {
         if (err) { console.log('error: ', err);
             result(err, null);
             return
         }
         result(null, res);
     })
+}
+
+Post.createComment = (newComment, result) => {
+    sql.query('INSERT INTO Posts SET ?', newComment, (err, res) => {
+        if (err) {
+            result(err, null);
+            return;
+        } else {
+            sql.query('SELECT * FROM Posts WHERE id = ?', res.insertId, (err, res) => {
+                if (err) {
+                    result(err, null);
+                    return;
+                }
+                result(null, res);
+            })
+        }
+    });
 }
 
 module.exports = Post;

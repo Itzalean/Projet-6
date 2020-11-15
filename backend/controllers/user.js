@@ -15,7 +15,17 @@ exports.signup = (req, res) => {
             });
             User.createUser(user, (err, data) => {
                 if (err) {res.status(500).send({ message: err.message })}
-                else { res.send(data); }
+                else { res.status(200).json({
+                    Name: data.Name,
+                    Id: data.id,
+                    Rank: data.Rank,
+                    token: jwt.sign(
+                        { userId: data.Id },
+                        'RANDOM_TOKEN_SECRET',
+                        { expiresIn: '1h'}
+                    )
+
+                }); }
             })
         })
         .catch(error => res.status(500).send({message: error.message}));
@@ -39,8 +49,8 @@ exports.login = (req, res) => {
                         Rank: data[0].Rank,
 
     					token: jwt.sign(
-    						{ userId: data[0].Id },
-    						'RANDOM_TOKEN_SECRET',
+    						{ userId: data[0].id },
+    						privateKey,
     						{ expiresIn: '1h'}
     					)
     				});

@@ -1,18 +1,22 @@
 <template>
     <aside class="d-flex flex-column justify-content-between">
-        <b-button-group v-if="$store.getters['auth/isAuthenticated']" class="d-flex flex-column">
-            <b-button pill variant="light" class="bg-transparent" size="sm">
-                <b-icon icon="arrow-up" variant="success" font-scale="1.5"></b-icon>
+        <b-button-group class="d-flex flex-column">
+            <!-- Bouton like -->
+            <b-button pill variant="primary" size="sm" @click="like(true)"
+                :disabled="isDisliked">
+                <b-icon icon="arrow-up" variant="light" font-scale="1.5"></b-icon>
             </b-button>
-            {{ karmaValue }}
-            <b-button pill variant="light" class="bg-transparent" size="sm">
-                <b-icon icon="arrow-down" variant="danger" font-scale="1.5"></b-icon>
+
+            {{ Likes }}
+            <!-- <br>{{karmaValue}} -->
+            <!-- Bouton dislike -->
+            <b-button id="down" pill variant="danger" size="sm" @click="like(false)" :disabled="isLiked">
+                <b-icon icon="arrow-down" variant="light" font-scale="1.5"></b-icon>
             </b-button>
         </b-button-group>
-        <b-button-group v-if="$store.getters['auth/isAuthenticated']" class="d-flex flex-column border">
-            <b-button v-if="name === poster" pill variant="light" class="bg-transparent justify-content-end" size="sm">
-                <b-icon icon="pencil" variant="dark" font-scale="1.5"></b-icon>
-            </b-button>
+
+        <!-- Bouton de suppression -->
+        <b-button-group class="d-flex flex-column border">
             <b-button v-if="(rank === 'MOD' || rank === 'ADMIN' || name === poster)" pill variant="light" class="bg-transparent" size="sm" @click="deletePost()">
                 <b-icon icon="trash" variant="danger" font-scale="2"></b-icon>
             </b-button>
@@ -26,24 +30,31 @@ export default {
     name: 'karma',
     data() {
         return {
-            confirmDelete: ""
+            confirmDelete: "",
+            // up: "",
+            // down: "",
+            Likes: this.karmaValue,
+            vote: this.userVote
         }
     },
     computed: {
         id() { return this.$store.state.auth.id;},
         rank() { return this.$store.state.auth.rank;},
-        name() { return this.$store.state.auth.name;}
+        name() { return this.$store.state.auth.name;},
+        isLiked() {return this.vote > 0 ? true : false},
+        isDisliked() {return this.vote < 0 ? true : false}
     },
     props: {
         karmaValue: { default: 0 },
         poster: {default: null},
-        postId: {}
+        postId: {},
+        detail: { default: false},
+        userVote: {}
     },
     methods: {
         deletePost() {
-            // console.log(this.$bvModal);
             this.confirmDelete = "";
-            this.$bvModal.msgBoxConfirm('La suppression de ce post entrainera aussi la suppression des commentaires associés.', {
+            this.$bvModal.msgBoxConfirm('La suppression de ce post entrainera aussi la suppression des éventuels commentaires associés.', {
                 title: "Veuillez confrmer la suppression du post",
                 size: "lg",
                 okVariant: "danger",
@@ -53,14 +64,43 @@ export default {
             })
                 .then(value => {this.confirmDelete = value
                     if (value == true) {
-                        // const params = 
-                        // console.log("parmas ; ", params)
                         this.$store.dispatch("posts/deletePost", this.postId)
-                        .then(data => {this.$router.push({ path: "/" })})
+                        .then(data => {
+                            if (!this.detail) {
+                                // Réaffichage des listes de posts ou commentaires
+                                this.$emit('deleteClicked', this.postId);
+                            } else {
+                                // Changement de page après suppression du post depuis la page du post
+                                this.$router.push({ path: '/Posts' })
+                            }
+                        })
                     }
                 })
                 .catch(err => {})
-        }
+        },
+        like(likeValue) {
+            // Si on a déjà voté, on enlève la "valeur" du vote (1 ou -1) au total puis on annule le vote
+            if (this.vote > 0 || this.vote < 0) {
+                this.Likes -= this.vote;
+                this.vote = 0;
+            // Sinon, s'il s'agit d'un like, on ajoute 1 au total et vote = 1
+            } else if (likeValue) {
+                this.vote = 1;
+                this.Likes++
+            // Sinon, il s'agit donc d'un dislike, on enlève 1 au total et vote = -1
+            } else {
+                this.vote = -1;
+                this.Likes--
+            }
+
+            const params = {
+                userId: this.id,
+                postId: this.postId,
+                vote: this.vote
+            }
+            this.$store.dispatch("posts/vote", params)
+                .then(res => {})
+        },
     }
 }
 

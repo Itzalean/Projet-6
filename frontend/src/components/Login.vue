@@ -1,10 +1,12 @@
 <template>
-<b-modal id="loginModal" ref="loginModal" centered :hide-footer=true>
+<b-modal id="loginModal" ref="loginModal" centered :hide-footer=true no-close-on-backdrop>
     <div slot="modal-header">
         <div class="modalTitle">Connexion</div>
         <span class="modalMsg"> {{errMsg}} </span>
     </div>
+
     <b-form no-validate>
+        <!-- Champ de saisie du profil -->
         <b-form-group id="nameGroup" label="Nom / pseudo :" label-for="name">
             <b-input-group class="mb-2">
                 <b-input-group-prepend is-text>
@@ -15,6 +17,7 @@
             </b-input-group>
         </b-form-group>
 
+        <!-- Champ de saisie du mot de passe -->
         <b-form-group id="passwordGroup" label="Mot de passe :" label-for="password">
             <b-input-group class="mb-2">
                 <b-input-group-prepend is-text>
@@ -25,11 +28,11 @@
             </b-input-group>
         </b-form-group>
 
-        <div>
+        <b-button-group>
             <b-button type="button" variant="primary" :disabled="!(userCheck && pwdCheck)" @click="loginUser()">Connexion</b-button>
-            <b-button type="button" class="ml-4" variant="secondary"  @click="$bvModal.hide('loginModal')">Annuler</b-button>
-            <b-button class="mx-3" variant="warning" @click='goToSignup()'>S'inscrire</b-button>
-        </div>
+
+            <b-button class="mx-3" variant="warning" to="signup">S'inscrire</b-button>
+        </b-button-group>
     </b-form>
 </b-modal>
 </template>
@@ -58,33 +61,45 @@ export default {
             this.pwdMsg = "Mot de passe obligatoire"
             return this.form.password.length !== 0
         },
-//        isValidated: () => {console.log(form.password.state)}
     },
     methods: {
-        ...mapMutations([
-            'auth/ShowModal'
-        ]),
+        showModal() {
+            this.$refs['loginModal'].show()
+        },
+        hideModal() {
+            this.$refs['loginModal'].hide()
+        },
         loginUser: function() {
             const {name, password } = this.form
 
             this.$store.dispatch("auth/loginUser", {name, password })
-                .then((data) => console.log("data : ", data))
+ //               .then((data) => this.$router.push({ path: '/postList'}))
                 .catch((err) => {this.errMsg = err.message})
         },
         goToSignup: function() {
             this.$bvModal.hide('loginModal');
             this.$bvModal.show('signupModal');
         }
+    },
+    created() {
+        let unsubscribeMe = this.$store.subscribe((mutation, state) => {
+            if (mutation.type === 'auth/AUTH_SUCCESS') {
+                unsubscribeMe()
+                this.$router.push({ path: '/postList'})
+            }
+        })
+    },
+    mounted() {
+      this.showModal();
     }
 }
 
 </script>
 
 <style scoped lang="scss">
-button:last-child {
-    float: right;   
+.btn-group {
+    width: 100%;
 }
-
 .modalTitle {
     font-size: 1.5rem;
 }

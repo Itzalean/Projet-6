@@ -1,34 +1,14 @@
-const router = require("express").Router();
-const postCtrl = require("../controllers/post");
-// const auth = require('../middleware/auth');
-// const multer = require('../middleware/multer-config');
-//module.exports = app => {
+const express = require('express');
+const router = express.Router();
 
-    // Creation d'un nouveau post
-    router.post("/", postCtrl.createPost);
+const postCtrl = require('../controllers/post');
+const auth = require('../middleware/auth');
+const multer = require('../middleware/multer-config');
 
-    // Retourne tous les posts
-    router.get("/", postCtrl.getAllPosts);
-
-    // Retrieve all published Tutorials
-    //router.get("/published", postCtrl.findAllPublished);
-
-    // Reourne un post spécifique
-    router.get("/:id", postCtrl.getPost);
-
-    // Mise à jour d'un post
-    router.put("/:id", postCtrl.updatePost);
-
-    // Suppression d'un post
-    router.delete("/:id", postCtrl.deletePost);
-
-    // Gestion des likes
-//    router.delete("/:id", postCtrl.likePost);
-
-    // Delete all Tutorials
-    //router.delete("/", postCtrl.deleteAll);
-
-//    app.use('/api/posts', router);
-//};
+router.get("/", postCtrl.getAllPosts);
+router.post("/", auth, multer, postCtrl.createPost);
+router.get("/:id", postCtrl.getPost);
+router.put("/:id", auth, multer, postCtrl.updatePost);
+router.delete("/:id", auth, postCtrl.deletePost);
 
 module.exports = router;

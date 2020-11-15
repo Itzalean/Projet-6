@@ -8,6 +8,16 @@ const router = new vueRouter({
     routes: [
         {
             path: "/",
+            name: "login",
+            component: () => import("../components/Login")
+        },
+        {
+            path: "/signup",
+            name: "signup",
+            component: () => import("../components/Signup")
+        },
+        {
+            path: "/Posts",
             alias: "/postList",
             name: "Posts",
             component: () => import("../components/PostList")
@@ -21,28 +31,9 @@ const router = new vueRouter({
             path: "/postAdd",
             alias: "/more",
             name: "add",
-            component: () => import("../components/PostAdd"),
-//            meta: {requiresAuth: true}
-            // beforeEnter: requireAuth
-        },
+            component: () => import("../components/PostAdd")
+        }
     ]
 });
 
-// router.beforeEach((to, from, next) => {
-//     console.log(store.getters["auth/isAuthenticated"], ' - ', store.state.modalVisible);
-//     if (to.matched.some(record => record.meta.requiresAuth) && !store.getters['auth/isAuthenticated']) {
-//         console.log('coucouRouter');
-//         store.dispatch('auth/showModal');
-//         // console.log(store.getters['auth/isAuthenticated']);
-//         if (store.getters["auth/isAuthenticated"]) {
-//             next()
-//             return
-//         } else {
-// //            $root.$bvModal.show('loginModal')
-//         }
-//         next()
-//     } else {
-//         next()
-//     }
-// })
 export default router
