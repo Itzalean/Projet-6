@@ -11,7 +11,7 @@ Pour fonctionner, ce projet nécessite certaines dépendances :
 $ git clone https://github.com/Itzalean/Projet-6.git
 ```
 
-# Configuration
+## Configuration
 Dans le répertoire backend/config se trouvent deux fichiers de configuration :
  - db.config.js
 Permet de configurer la connexion à la base de données. Adaptez-la en fonction de votre configuration.
