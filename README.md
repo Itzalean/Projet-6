@@ -21,15 +21,16 @@ Contient la _"clé secrète"_ pour la génération des tokens avec [JSON Web Tok
 
 ## Installation
 Le projet est divisé en deux parties : le backend et le frontend. Chaque partie nécessite certaines manipulations.
-Pour le backend, placez-vous dans le répertoire du projet, puis :
+Placez-vous dans le répertoire du projet, puis :
 ```sh
 $ cd backend
-$ npm install 
+$ npm install
+$ mkdir images
 $ node server &
 $ cd ../frontend
-$ npm install 
+$ npm install
 $ npm run serve &
 ```
-
+(Procédure à adapter en fonction de l'OS)
 ## Accès à l'application
 L'application, une fois démarrée, est accessible dans votre navigateur sur le port 4000 : http://localhost:4000/
