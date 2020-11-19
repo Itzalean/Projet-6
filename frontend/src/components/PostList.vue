@@ -3,7 +3,7 @@
 
     <article v-for="post in data" :id="'post-' + post.id" class="b-container d-flex border border-warning px-1 my-1 rounded">
 
-        <karma :karmaValue=post.Karma :poster=post.Name :postId=post.id :userVote=post.vote @deleteClicked="onDeleteClick" />
+        <karma :karmaValue=post.Karma :poster=post.userId :postId=post.id :userVote=post.vote @deleteClicked="onDeleteClick" />
 
         <b-card class="my-2 px-0 col-11">
             <template v-slot:header>
@@ -13,11 +13,13 @@
             </template>
             <!-- Affichage selon le type de post -->
             <b-card-text v-if="post.Type === 0">{{ post.Content }}</b-card-text>
-            <b-card-img v-else-if="post.Type === 1" :src="post.Content"></b-card-img>
+            <b-card-body v-else-if="post.Type === 1" class="text-center">
+                <b-card-img :src="post.Content" :alt="post.Title" />
+            </b-card-body>
             <div v-else class="card-link"><a :href="post.Content" target="_blank">{{ post.Content }}</a></div>
 
             <template v-slot:footer>
-                <b-button v-if="post.Name === $store.state.auth.name" pill v-b-tooltip.hover title="Éditer le post" variant="outline-success" class="editBtn mr-3 py-0" size="md" @click="updatePost(post.id)">
+                <b-button v-if="post.userId === $store.state.auth.id" pill v-b-tooltip.hover title="Éditer le post" variant="outline-success" class="editBtn mr-3 py-0" size="md" @click="updatePost(post.id)">
                     <b-icon icon="pencil" variant="dark" font-scale="1.5" class="py-1"></b-icon>
                 </b-button>
                 <span class="small">Mis à jour{{ post.updatedAt | formatDate }}</span>
@@ -30,6 +32,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 
 import karma from "./karmaAside"
 import store from '../store'
@@ -38,6 +41,11 @@ export default {
     name: 'PostList',
     components: {
         'karma': karma
+    },
+    computed: {
+        hasId() {
+            return this.$store.state.auth.id
+        },
     },
     data() {
         return {
@@ -52,13 +60,13 @@ export default {
         }
     },
     created() {
-        this.$store.dispatch("posts/getAllPosts", { id: this.$store.state.auth.id })
+        this.$store.dispatch("posts/getAllPosts", this.$store.state.auth.id )
         .then((data) => {this.data = data})
     },
     methods: {
         updatePost(value) {
             const param = this.data.find( x => x.id === value)
-            this.$parent.showPostAdd(param)
+            this.$router.push({ name: "Create", params: {parmPostId: param}})
         },
         onDeleteClick(params) {
             const index = this.data.findIndex(x => x.id == params);
@@ -76,6 +84,15 @@ export default {
 div .card-link, .editBtn {
     z-index: 2;
     position: relative;   
+}
+img {
+    max-height: 800px;
+    max-width: 100%;
+    height: auto;
+    width: auto;
+}
+.card-text {
+    white-space: pre-wrap;
 }
 
 </style>

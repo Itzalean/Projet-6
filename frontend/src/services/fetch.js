@@ -1,6 +1,6 @@
 export default async function fetchService (route, method = "GET", params = null) {
 
-    // Constitution de la reqûete
+    // Constitution de la requête
     const url = "http://localhost:8080/api/" + route;
 
     const headers = {

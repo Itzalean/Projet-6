@@ -22,7 +22,9 @@ exports.createPost = (req, res) => {
 exports.updatePost = (req, res) => {
     const postObject = req.body.post ? JSON.parse(req.body.post) : req.body;
 
-    postObject.Type === 1 ? postObject.Content = `${req.protocol}://${req.get("host")}/images/${req.file.filename} ` : postObject.Content = postObject.Content
+    if (postObject.Content || req.body.post) {
+        postObject.Type === 1 ? postObject.Content = `${req.protocol}://${req.get("host")}/images/${req.file.filename} ` : postObject.Content = postObject.Content
+    }
     Post.update(postObject, (err, data) => {
         if (err) {res.status(500).send({ message: err.message || "Erreur lors de la mise à jour"})}
         else { res.send(data); }
@@ -37,31 +39,22 @@ exports.deletePost = (req, res) => {
 };
 
 exports.getPost = (req, res) => {
-    Post.findPost(req.params.id, (err, data) => {
-        // .then(data => res.send(data))
-        // .catch(err => res.status(500).send({message: "Post introuvable"}))
+    Post.findPost(req.params, (err, data) => {
         if (err) res.status(500).send({message:
             err.message || "Une erreur est survenue lors de la lecture du post."
         })
         else res.send(data);
-        // .then(data => res.send(data))
-        // .catch(error => res.status(400).json({ error }))
-    // })
     })
 };
 
 exports.getAllPosts = (req, res) => {
-    const post = req.body.id;
-    Post.findAll((err, data) => {
+    const pUser = req.params.userId;
+    Post.findAll(pUser, (err, data) => {
         if (err)
           res.status(500).send({
             message:
-              err.message || "Some error occurred while retrieving customers."
+              err.message || "Une erreur est survenue lors de la lecture des posts."
           });
         else res.send(data);
       });
-}
-
-exports.likePost = (req, res, next) => {
-
 }

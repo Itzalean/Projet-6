@@ -4,7 +4,8 @@
     <!-- Post -->
     <section>
         <article class="container d-flex" :id="'post-' + data.id">
-        <karma :karmaValue=data.Karma :poster=data.Name :postId=data.id :userVote=data.Vote :detail=true />
+        <karma :karmaValue=data.Karma :poster=data.userId :postId=data.id :userVote=data.vote :detail=true />
+
         <b-card class="my-2 col-11">
             <template v-slot:header>
                 <span class="small">Posté par {{ data.Name}}{{ data.createdAt | formatDate }}</br></span>
@@ -18,7 +19,7 @@
             </div>
 
             <template v-slot:footer>
-                <b-button v-if="data.Name === $store.state.auth.name" pill v-b-tooltip.hover title="Éditer le post" variant="outline-success" class="mr-3 py-0" size="md">
+                <b-button v-if="data.Name === $store.state.auth.name" pill v-b-tooltip.hover title="Éditer le post" variant="outline-success" class="mr-3 py-0" size="md" @click="updatePost()">
                     <b-icon icon="pencil" variant="dark" font-scale="1.5" class="py-1" />
                 </b-button>
                 <span class="small">Mis à jour{{ data.updatedAt | formatDate }}</span>
@@ -48,7 +49,7 @@
         <b-row align-h="center" :key="commentKey" ref="Commentaire">
 
             <article v-for="comment in Comment" :id="'post-' + comment.id" class="b-container col-9 d-flex border border-primary px-1 my-1 rounded">
-                <karma :karmaValue=comment.Karma :poster=comment.Name @deleteClicked="onDeleteClick" :postId=comment.id :userVote=comment.vote />
+                <karma :karmaValue=comment.Karma :poster=comment.userId :postId=comment.id :userVote=comment.vote @deleteClicked="onDeleteClick" />
                 <b-card class="my-2 px-0 col-11">
                     <template v-slot:header v-model="card.update">
                         <span class="small">Posté par {{ comment.Name }}{{ comment.createdAt | formatDate }}</br></span>
@@ -58,7 +59,7 @@
 
                     <template v-slot:footer>
                         <!-- Bouton d'édition des commentaires -->
-                        <b-button v-if="data.Name === $store.state.auth.name" pill v-b-tooltip.hover title="Éditer le post" variant="outline-success" class="mr-3 py-0" size="md" @click="updateComment(comment.id)">
+                        <b-button v-if="comment.userId === $store.state.auth.id" pill v-b-tooltip.hover title="Éditer le post" variant="outline-success" class="mr-3 py-0" size="md" @click="updateComment(comment.id)">
                             <b-icon icon="pencil" variant="dark" font-scale="1.5" class="py-1" />
                         </b-button>
                         <span class="small">Mis à jour{{ comment.updatedAt | formatDate }}</span>
@@ -89,6 +90,7 @@ export default {
             data: {},
             Comment: [],
             commentKey: 0,
+            postKey: 0,
             commentId: 0,
             commentTitle: "",
             commentContent: ""
@@ -101,10 +103,11 @@ export default {
         }
     },
     beforeMount() {
-        this.$store.dispatch("posts/getPost", this.$route.params.id)
+        this.$store.dispatch("posts/getPost", this.$route.params)
             .then((data) => {
                 this.data = data[0];
                 if (data.length > 0) {
+                    console.log("Data :", data)
                     this.Comment = data.slice(1, )
                 }
             })
@@ -122,6 +125,10 @@ export default {
             this.$store.dispatch("posts/addComment", params)
                 .then(value => {this.updateList(value)
                 })
+        },
+        updatePost() {
+            const param = this.data
+            this.$router.push({ name: "Create", params: {parmPostId: param}})
         },
         updateComment(value) {
             const params = this.Comment.find( comment => comment.id === value);
@@ -150,3 +157,10 @@ export default {
 }
 
 </script>
+
+<style scoped lang="scss">
+// Pour pouvoir clicker sur les liens dans les cards
+.card-text {
+    white-space: pre-wrap;
+}
+</style>

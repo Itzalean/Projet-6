@@ -75,7 +75,5 @@ export const auth = {
         AUTH_LOGOUT(state) {
             localStorage.removeItem("userInfo");
         }
-    },
-    modules: {
     }
 }

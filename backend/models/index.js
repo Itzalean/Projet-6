@@ -1,37 +1,6 @@
 const mysql = require("mysql2");
 const dbConfig = require("../config/db.config.js");
 
-// const Sequelize = require("sequelize");
-// const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
-//     host: dbConfig.HOST,
-//     dialect: dbConfig.dialect,
-//     operatorsAliases: false,
-
-//     pool: {
-//         max: dbConfig.pool.max,
-//         min: dbConfig.pool.min,
-//         acquire: dbConfig.pool.acquire,
-//         idle: dbConfig.pool.idle
-//     }
-// });
-
-// const db = {};
-
-// db.Sequelize = Sequelize;
-// db.sequelize = sequelize;
-
-// db.posts = require("./Post.js")(sequelize, Sequelize);
-// db.users = require("./User.js")(sequelize, Sequelize);
-
-// db.users.hasMany(db.posts);
-// db.posts.belongsTo(db.users);
-// db.posts.hasMany(db.posts);
-
-// module.exports = db;
-
-// const mysql = require('mysql2');
-// const dbConfig = require("../config/db.config.js");
-
 const db =  mysql.createConnection({
     host: dbConfig.HOST,
     user: dbConfig.USER,
@@ -39,13 +8,13 @@ const db =  mysql.createConnection({
     timezone: dbConfig.TIMEZONE,
     dialect: "mysql",
 
-//    database: dbConfig.DB
 });
 
-// open the MySQL connection
+// Ouverture de la connexion mysql
 db.connect(error => {
     if (error) throw error;
     console.log("Successfully connected to mysql.");
+    // Création de la base de données, nécessite le privilège "CREATE"
     db.query("CREATE DATABASE IF NOT EXISTS " + dbConfig.DB, (err, result) => {
         if (err) throw err;
         console.log("Database created");
@@ -54,6 +23,7 @@ db.connect(error => {
 
         db.query("USE " + dbConfig.DB);
 
+        // Création de la table des utilisateurs
         db.query("CREATE TABLE IF NOT EXISTS `Users` ( \
             `id` INT NOT NULL AUTO_INCREMENT, \
             `Name` VARCHAR(255) NOT NULL, \
@@ -72,6 +42,7 @@ db.connect(error => {
                 console.log("Database Users created");
         });
 
+        // Création de la table des posts et commentaires
         db.query("CREATE TABLE IF NOT EXISTS `Posts` ( \
             `id` INT NOT NULL AUTO_INCREMENT, \
             `Title` VARCHAR(255) NOT NULL, \
@@ -93,6 +64,7 @@ db.connect(error => {
                 console.log("Database Posts created");
         });
 
+        // Création de la table des likes / dislikes
         db.query("CREATE TABLE IF NOT EXISTS `Votes` ( \
             `userId` INT(11) NOT NULL, \
             `postId` INT(11) NOT NULL, \

@@ -1,17 +1,3 @@
-// module.exports = (sequelize, Sequelize) => {
-//     const Users = sequelize.define("Users", {
-// //        Id: {type: Sequelize.INTEGER(11)},
-//         Name: {type: Sequelize.STRING(255), unique: true},
-//         Email: {type: Sequelize.STRING(255), unique: true},
-//         Password: {type: Sequelize.STRING(255)},
-//         Karma: {type: Sequelize.INTEGER},
-//         Rank: {type: Sequelize.STRING(5)},
-//         Deleted: {type: Sequelize.BOOLEAN, defaultValue: false}
-//     });
-
-//     return Users;
-// };
-
 const sql = require('./index.js');
 
 const User = function(user) {
@@ -29,7 +15,6 @@ User.createUser = (newUser, result) => {
             result(err, null);
             return;
         }
-//        console.log("created user : ", {id: res.insertId, ...newUser});
         newUser.id = res.insertId;
         result(null, {...newUser});
     });

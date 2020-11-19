@@ -3,5 +3,5 @@ module.exports = {
     USER: "groupomania",
     PASSWORD: "groupomania",
     DB: "Groupomania",
-    TIMEZONE: "UTC+1"
+    TIMEZONE: "+00:00"
 };

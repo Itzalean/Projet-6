@@ -73,7 +73,6 @@ export default {
             const {name, password } = this.form
 
             this.$store.dispatch("auth/loginUser", {name, password })
- //               .then((data) => this.$router.push({ path: '/postList'}))
                 .catch((err) => {this.errMsg = err.message})
         },
         goToSignup: function() {
@@ -85,7 +84,8 @@ export default {
         let unsubscribeMe = this.$store.subscribe((mutation, state) => {
             if (mutation.type === 'auth/AUTH_SUCCESS') {
                 unsubscribeMe()
-                this.$router.push({ path: '/postList'})
+                console.log('path : ', "/" + this.$store.state.auth.id + '/Posts')
+                this.$router.push({ path: "/" + this.$store.state.auth.id + '/Posts'})
             }
         })
     },

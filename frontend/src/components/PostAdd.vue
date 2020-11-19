@@ -1,6 +1,6 @@
 // ./components/PostAdd.vue
 <template>
-<b-modal id="postAddModal" ref="postAddModal" :title="msgTitle" centered :hide-footer=true size=xl>
+<b-modal id="postAddModal" ref="postAddModal" :title="msgTitle" centered :hide-footer=true size=xl @hide="rewind">
 
     <section class="container col-8 my-5 py-3">
         <b-form @submit.prevent="createPost">
@@ -18,9 +18,10 @@
                 <!-- Onglet des images -->
                 <b-tab title="Image" lazy 
                         :disabled="!this.isCreate && this.enabledTab !=='IMAGE'">
-                    <b-form-file id="image" accept="image/*" v-model="wPicture" size="lg" required drop-placeholder="Glissez/déposez une image ou choisissez une image" browse-text="Parcourir..." @change="imageChange" />
+                    <b-form-file id="picture" accept="image/*" v-model="wPicture" size="lg"  drop-placeholder="Glissez/déposez une image ou choisissez une image" browse-text="Parcourir..." @change="imageChange" />
                     <b-row class="justify-content-md-center">
-                        <b-img v-if="this.imageSrc" :src="this.imageSrc" class="col-5 my-4" />
+                        <b-img v-if="this.imageSrc":src="this.imageSrc" class="col-5 my-4" />
+                        <b-img v-else :src="this.parmPostId.Content" class="col-5 my-4" />
                     </b-row>
                 </b-tab>
 
@@ -40,6 +41,8 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+
 export default {
     name: 'PostAdd',
     data() {
@@ -47,13 +50,14 @@ export default {
             form: {},
             data: {},
             tabIndex: 0,
-            file: ""
+            file: "",
+            imageSrc: null
         }
     },
-    props: {
-        parmPostId: {}
-    },
     computed: {
+        parmPostId() {
+            return this.$route.params.parmPostId ? this.$route.params.parmPostId : null},
+        ...mapGetters(['auth/hasId']),
         isCreate() {return this.parmPostId.id === void 0},
         msgTitle() {
             if (this.parmPostId.id) {
@@ -82,23 +86,17 @@ export default {
             set: function(value) {this.form.link = value}
         },
         wPicture: {
-            get: function() {},
-            set: function(value) {this.form.picture = value}
-        },
-        imageSrc: {
-            get: function() {return this.parmPostId.Type === 1 ? this.parmPostId.Content : ""
-            },
-            set: function(value) {console.log("Value : ", this.wPicture); this.imageChange(this.form.picture.name)}
+            get: function() {return null},
+            set: function(value) {this.form.picture = [value]}
         }
-
     },
     methods: {
         createPost() {
             const params = {
                 userId: this.$store.state.auth.id,
-                Title: this.form.title,
+                Title: this.form.title || this.parmPostId.Title,
                 Type: this.tabIndex,
-                Content: this.tabIndex === 2 ? this.form.link : this.tabIndex === 1 ? this.form.picture.name : this.form.content
+                Content: this.tabIndex === 2 ? this.form.link || this.parmPostId.Content: this.tabIndex === 1 ? this.form.picture.name || this.parmPostId.Content : this.form.content || this.parmPostId.Content
             }
 
             // On envoie l'id du post à part en cas de modification
@@ -110,36 +108,41 @@ export default {
                 formData.append('post', JSON.stringify(params));
                 formData.append('image', this.file );
 
-                this.isCreate ? 
+                this.isCreate ?
                     this.$store.dispatch("posts/createPost", formData)
-                        .then(value => {this.$router.push({ path: '/post/' + value.id })})
+                        .then(value => {this.$router.replace({ path: "/" + this.hasId + "/post/" + value.id })})
                     :
                     this.$store.dispatch("posts/updatePost", [this.parmPostId.id, formData])
-                        .then(value => {this.$router.push({ path: '/post/' + value.id })
+                        .then(value => {this.$router.replace({ path: "/" + this.hasId + "/post/" + value.id })
                         })
             } else {
                 this.isCreate ?
                     this.$store.dispatch("posts/createPost", params)
-                        .then(value => {this.$router.push({ path: '/post/' + value.id })})
+                        .then(value => {this.$router.replace({ path: "/" + this.hasId + "/post/" + value.id })})
                     :
                     this.$store.dispatch("posts/updatePost", [this.parmPostId.id, params])
-                        .then(value => {this.$router.push({ path: '/post/' + value.id })})
+                        .then(value => {this.$router.replace({ path: "/" + this.hasId + "/post/" + value.id })})
             }
             this.$bvModal.hide('postAddModal')
         },
-        imageChange(url) {
-            this.file = url.target.files[0];
-            const reader = new FileReader();
-
-            reader.onload = (url) => {
-                this.imageSrc = url.target.result;
-            }
-            this.imageSrc = reader.readAsDataURL(this.file);
-            console.log("imageSrc : ", reader);
+        imageChange(e) {
+            if (e) {
+            this.file = e.target.files[0];
+            this.imageSrc = URL.createObjectURL(this.file);}
         },
         reset() {
+            console.log(this.hasId)
             this.imageSrc = null;
         },
+        rewind() {
+            this.$router.go(-1)
+        },
+        showModal() {
+            this.$refs['postAddModal'].show()
+        }
+    },
+    mounted() {
+      this.showModal();
     }
 }
 </script>

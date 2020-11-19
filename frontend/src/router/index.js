@@ -17,21 +17,21 @@ const router = new vueRouter({
             component: () => import("../components/Signup")
         },
         {
-            path: "/Posts",
+            path: "/:userId/Posts",
             alias: "/postList",
             name: "Posts",
             component: () => import("../components/PostList")
         },
         {
-            path: "/post/:id",
-            name: "postDetails",
-            component: () => import("../components/Post")
+            path: "/Create",
+            name: "Create",
+            component: () => import("../components/PostAdd"),
+            props: true
         },
         {
-            path: "/postAdd",
-            alias: "/more",
-            name: "add",
-            component: () => import("../components/PostAdd")
+            path: "/:userId/Post/:id",
+            name: "postDetails",
+            component: () => import("../components/Post")
         }
     ]
 });

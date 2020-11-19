@@ -35,30 +35,28 @@ Post.update = (updatedPost, result) => {
     })
 }
 
-Post.findAll = result => {
+Post.findAll = (pUser, result) => {
     sql.query("SELECT Posts.*, Name, COALESCE(Vote, 0) AS vote FROM Posts \
         JOIN Users ON Posts.userId = Users.Id \
-        LEFT JOIN Votes ON Votes.userId = Posts.userId AND Votes.postId = Posts.id \
+        LEFT JOIN Votes ON Votes.userId = ? AND Votes.postId = Posts.id \
         WHERE Posts.postId IS NULL \
-        ORDER BY createdAt DESC",
+        ORDER BY createdAt DESC", pUser,
         (err,res) => {
             if (err) {
                 console.log("error: ", err);
                 result(null, err);
                 return;
             }
-//            console.log("posts: ", res);
             result(null, res);
         });
-          
 }
 
-Post.findPost = (postId, result) => {
+Post.findPost = (params, result) => {
     sql.query("SELECT Posts.*, Name, COALESCE(Vote, 0) AS vote FROM Posts \
     JOIN Users ON Posts.userId = Users.Id \
-    LEFT JOIN Votes ON Votes.userId = Posts.userId AND Votes.postId = Posts.id \
+    LEFT JOIN Votes ON Votes.userId = ? AND Votes.postId = Posts.id \
     WHERE Posts.Id = ? OR Posts.postId = ? \
-    ORDER BY postId, updatedAt DESC", [postId, postId], (err, res) => {
+    ORDER BY postId, updatedAt DESC", [params.userId, params.id, params.id], (err, res) => {
         if (err) { console.log("error: ", err);
             result(err, null);
             return;
@@ -82,6 +80,7 @@ Post.delete = (postId, result) => {
     })
 }
 
+// Création d'un commentaire. Relit l'enregistrement pour récupérer les informations générées lors de la création
 Post.createComment = (newComment, result) => {
     sql.query('INSERT INTO Posts SET ?', newComment, (err, res) => {
         if (err) {

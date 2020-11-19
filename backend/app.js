@@ -10,7 +10,7 @@ const voteRoutes = require('./routes/vote');
 const app = express();
 
 // Variable globale pour le token (JSON web token)
-global.privateKey = fs.readFileSync(__dirname + '/config/private.key'); // Problème apparu tardivement
+global.privateKey = fs.readFileSync(__dirname + '/config/private.key');
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');

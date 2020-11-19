@@ -8,6 +8,7 @@ import router from './router'
 import store from './store'
 
 Vue.config.productionTip = false
+Vue.config.silent = true
 
 Vue.use(BootstrapVue)
 Vue.use(IconsPlugin)

@@ -122,8 +122,7 @@ export default {
         let unsubscribeMe = this.$store.subscribe((mutation, state) => {
             if (mutation.type === 'auth/AUTH_SUCCESS') {
                 unsubscribeMe()
-                this.$router.push({ path: '/postList'})
-                // .then()
+                this.$router.push({ path: "/" + this.$store.state.auth.id + '/Posts'})
             }
         })
     },

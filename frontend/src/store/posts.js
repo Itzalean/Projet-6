@@ -7,18 +7,21 @@ export const posts = {
     },
     getters: {},
     actions: {
-        getAllPosts({ commit }, params) {
+        //////////////////////////
+        //   Partie des posts   //
+        //////////////////////////
+        getAllPosts({ commit }, id) {
             return new Promise((resolve, reject) => {
-                fetchService("posts", "GET", params)
+                fetchService("posts/" + id + "/", "GET")
                     .then(data => {
                         commit('POSTS_SUCCESS')
                         resolve(data)
                     })
             })
         },
-        getPost({ commit }, id) {
+        getPost({ commit }, params) {
             return new Promise((resolve, reject) => {
-                fetchService("posts/" + id)
+                fetchService("posts/" + params.userId + "/post/" + params.id)
                     .then(data => {
                         commit('POSTS_SUCCESS')
                         resolve(data)
@@ -58,6 +61,9 @@ export const posts = {
                     })
             })
         },
+        /////////////////////////////////
+        //   Partie des commentaires   //
+        /////////////////////////////////
         addComment({ commit }, params) {
             return new Promise((resolve, reject) => {
                 fetchService("comments", "POST", params)
@@ -76,6 +82,9 @@ export const posts = {
                     })
             })
         },
+        //////////////////////////
+        //   Partie des votes   //
+        //////////////////////////
         vote({ commit }, params) {
             return new Promise((resolve, reject) => {
                 fetchService("votes", "POST", params)
