@@ -19,10 +19,12 @@
                 <b-tab title="Image" lazy 
                         :disabled="!this.isCreate && this.enabledTab !=='IMAGE'">
                     <b-form-file id="picture" accept="image/*" v-model="wPicture" size="lg"  drop-placeholder="Glissez/déposez une image ou choisissez une image" browse-text="Parcourir..." @change="imageChange" />
+                    <div id="previewDiv" class="col" @click="imageClick">
                     <b-row class="justify-content-md-center">
                         <b-img v-if="this.imageSrc":src="this.imageSrc" class="col-5 my-4" />
                         <b-img v-else :src="this.parmPostId.Content" class="col-5 my-4" />
                     </b-row>
+                    </div>
                 </b-tab>
 
                 <!-- Onglet des liens -->
@@ -130,6 +132,10 @@ export default {
             this.file = e.target.files[0];
             this.imageSrc = URL.createObjectURL(this.file);}
         },
+        imageClick() {
+            const test = document.getElementById('picture')
+            picture.click()
+        },
         reset() {
             console.log(this.hasId)
             this.imageSrc = null;
@@ -149,5 +155,9 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
+#previewDiv {
+    min-height: 100px;
+    background-color: #073642;
+}
 
 </style>

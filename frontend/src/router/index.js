@@ -33,7 +33,19 @@ const router = new vueRouter({
             name: "postDetails",
             component: () => import("../components/Post")
         }
-    ]
+    ],
+    // Positionnement dans la page au chargement :
+    //     - savedPosition si on arrive par back / forward
+    //     - to.hash si on a une ancre
+    scrollBehavior(to, from, savedPosition) {
+        if (savedPosition) {
+            return savedPosition
+        } else if (!to.hash) {
+            return { x: 0, y: 0 }
+        } else {
+            return {selector: to.hash}
+        }
+    }
 });
 
 export default router

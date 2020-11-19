@@ -28,6 +28,8 @@
         </article>
     </section>
 
+    <b-button block variant="info" v-b-toggle.collapse-1 class="mt-5" >Rédiger un commentaire</b-button>
+    <b-collapse id="collapse-1" class="mt-2" :visible="Comment.length === 0">
     <!-- Card de saisie des commentaires -->
     <section class="container col-8 my-5 py-3 border">
         <b-form @submit.prevent="addComment">
@@ -41,7 +43,10 @@
             </div>
         </b-form>
     </section>
+    </b-collapse>
 
+    <b-button block variant="info" v-b-toggle.collapse-2 class="my-2" >Afficher / cacher les commentaires</b-button>
+    <b-collapse id="collapse-2" class="mt-2" visible >
     <!-- Boucle d'affichage des commentaires -->
     <section>
         <commentModal @updateClicked="onUpdateClick" :id="commentId" :Title="commentTitle" :content="commentContent" />
@@ -66,10 +71,9 @@
                     </template>
                 </b-card>
             </article>
-
         </b-row>
-
     </section>
+    </b-collapse>
 </div>
 </template>
 
